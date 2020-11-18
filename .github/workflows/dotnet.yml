@@ -33,7 +33,7 @@ jobs:
     - name: Publish with dotnet
       run: dotnet publish --configuration Release -o ../published_app --no-build
 
-    - name: Publish artifacts
+    - name: Publish artifactshh
       uses: actions/upload-artifact@v2
       with:
         name: webapp
