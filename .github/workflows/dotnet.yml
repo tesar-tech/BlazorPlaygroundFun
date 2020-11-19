@@ -5,9 +5,11 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+
 env:
   AZURE_WEBAPP_NAME: your-app-name    # set this to your application's name
   AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  
 jobs:
   build:
 
@@ -20,21 +22,18 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.100   
-   
-    - name: Install dependencies 
-      run: dotnet restore
       
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-      
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
-    
-    - name: Publish with dotnet
-      run: dotnet publish --configuration Release -o ../published_app --no-build
-
-    - name: Publish artifactshh
-      uses: actions/upload-artifact@v2
-      with:
-        name: webapp
-        path: /home/runner/work/BlazorPlaygroundFun/published_app/
+         # Run dotnet build and publish
+    - name: dotnet build and publish
+      run: |
+          dotnet restore
+          dotnet build --configuration Release
+          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app_published' 
+          
+      # Deploy to Azure Web apps
+    - name: 'Run Azure webapp deploy action using publish profile credentials'
+      uses: azure/webapps-deploy@v2
+      with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }} # Define secret variable in repository settings as per action documentation
+          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app_published'
